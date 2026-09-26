@@ -181,8 +181,8 @@ export default function SignUp({ onBack, onContinue }: SignUpProps) {
 
       {/* Footer */}
       <div className="px-6 pb-6 pt-2 flex-shrink-0">
-        <p className="text-center text-[10px] leading-relaxed text-gray-400 text-balance">
-          By creating an account, you agree to our{' '}
+        <p className="text-center text-[10px] leading-relaxed text-gray-400">
+          By creating an account, you agree to our<br />
           <span className="text-ink font-semibold">Terms of Service</span>
           {' '}and{' '}
           <span className="text-ink font-semibold">Privacy Policy</span>

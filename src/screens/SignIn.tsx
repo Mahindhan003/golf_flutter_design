@@ -199,8 +199,8 @@ export default function SignIn({ onSignIn, onSignUp, showToast }: SignInProps) {
 
       {/* Footer */}
       <div className="px-6 pb-6 pt-2 flex-shrink-0">
-        <p className="text-center text-[10px] leading-relaxed text-gray-400 text-balance">
-          By signing in, you agree to our{' '}
+        <p className="text-center text-[10px] leading-relaxed text-gray-400">
+          By signing in, you agree to our<br />
           <span className="text-ink font-semibold">Terms of Service</span>
           {' '}and{' '}
           <span className="text-ink font-semibold">Privacy Policy</span>
