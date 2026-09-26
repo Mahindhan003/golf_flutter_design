@@ -199,7 +199,7 @@ export default function SignIn({ onSignIn, onSignUp, showToast }: SignInProps) {
 
       {/* Footer */}
       <div className="px-6 pb-6 pt-2 flex-shrink-0">
-        <p className="text-center text-xs text-gray-400">
+        <p className="text-center text-[10px] leading-relaxed text-gray-400 text-balance">
           By signing in, you agree to our{' '}
           <span className="text-ink font-semibold">Terms of Service</span>
           {' '}and{' '}
