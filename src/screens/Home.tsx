@@ -78,11 +78,11 @@ export default function Home({ push, showToast }: SharedNavProps) {
         {/* Stats card */}
         <div className="bg-ink rounded-[28px] p-5 shadow-float relative overflow-hidden">
           <div
-            className="absolute -right-8 -top-10 w-[124px] h-[124px] rounded-full pointer-events-none"
-            style={{ background: 'radial-gradient(circle, rgba(200,236,90,0.28) 0%, rgba(200,236,90,0) 70%)' }}
+            className="absolute inset-y-0 right-0 w-[70%] pointer-events-none"
+            style={{ background: 'linear-gradient(90deg, rgba(200,236,90,0) 0%, rgba(200,236,90,0.14) 40%, rgba(200,236,90,0.30) 100%)' }}
           />
-          <p className="text-white/55 text-[12px] font-semibold font-display">Handicap Index</p>
-          <div className="flex items-end justify-between mt-1">
+          <p className="relative text-white/55 text-[12px] font-semibold font-display">Handicap Index</p>
+          <div className="relative flex items-end justify-between mt-1">
             <p className="font-display font-extrabold text-lime-400 text-[44px] leading-none tracking-tight">
               {profile.handicapIndex.toFixed(1)}
             </p>
