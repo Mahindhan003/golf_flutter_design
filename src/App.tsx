@@ -440,7 +440,10 @@ export default function App() {
     <PhoneFrame bare={isPhone}>
       {!isPhone && <DynamicIsland />}
       <div className="flex flex-col h-full bg-canvas">
-        <StatusBar />
+        {/* On a real phone the device draws its own status bar, so only keep the fake one in the desktop mockup */}
+        {isPhone
+          ? <div className="flex-shrink-0" style={{ paddingTop: 'max(12px, env(safe-area-inset-top))' }} />
+          : <StatusBar />}
 
         {/* Screen content */}
         <div className="flex-1 overflow-hidden relative">
