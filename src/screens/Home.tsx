@@ -78,7 +78,7 @@ export default function Home({ push, showToast }: SharedNavProps) {
         {/* Stats card */}
         <div className="bg-ink rounded-[28px] p-5 shadow-float relative overflow-hidden">
           <div
-            className="absolute -right-10 -top-12 w-44 h-44 rounded-full pointer-events-none"
+            className="absolute -right-8 -top-10 w-[124px] h-[124px] rounded-full pointer-events-none"
             style={{ background: 'radial-gradient(circle, rgba(200,236,90,0.28) 0%, rgba(200,236,90,0) 70%)' }}
           />
           <p className="text-white/55 text-[12px] font-semibold font-display">Handicap Index</p>
