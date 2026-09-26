@@ -1,7 +1,10 @@
 import { useState, useCallback, useEffect } from 'react'
-import type { ScreenName, NavEntry, ToastData, DialogData } from './types'
+import type { ScreenName, NavEntry, ToastData, DialogData, NewAccount } from './types'
 import { IconHome, IconTournament, IconProfile, IconSpinner } from './components'
 import SignIn from './screens/SignIn'
+import SignUp, { type AccountBasics } from './screens/SignUp'
+import ProfileSetup from './screens/ProfileSetup'
+import { MOCK_PROFILE, applyNewAccount } from './data'
 import Home from './screens/Home'
 import TournamentList from './screens/TournamentList'
 import TournamentDetails from './screens/TournamentDetails'
@@ -363,7 +366,27 @@ export default function App() {
     setIsAuthenticated(true)
     setNavStack([{ screen: 'home', direction: 'push' }])
     setActiveTab(0)
-    showToast('Welcome back, Alexander', 'success')
+    showToast(`Welcome back, ${MOCK_PROFILE.firstName}`, 'success')
+  }, [showToast])
+
+  /* Sign-up flow: sign in → sign up → golfer profile setup → home */
+  const [authScreen, setAuthScreen]       = useState<'signin' | 'signup' | 'setup'>('signin')
+  const [authDirection, setAuthDirection] = useState<'push' | 'pop'>('push')
+  const [basics, setBasics]               = useState<AccountBasics | null>(null)
+
+  const goAuth = useCallback((screen: 'signin' | 'signup' | 'setup', direction: 'push' | 'pop') => {
+    setAuthDirection(direction)
+    setAuthScreen(screen)
+  }, [])
+
+  const handleAccountCreated = useCallback((account: NewAccount) => {
+    applyNewAccount(account)
+    setBasics(null)
+    setAuthScreen('signin')
+    setIsAuthenticated(true)
+    setNavStack([{ screen: 'home', direction: 'push' }])
+    setActiveTab(0)
+    showToast(`Welcome to the clubhouse, ${MOCK_PROFILE.firstName}!`, 'success')
   }, [showToast])
 
   const handleSignOut = useCallback(() => {
@@ -400,7 +423,22 @@ export default function App() {
 
   function renderScreen() {
     if (!isAuthenticated) {
-      return <SignIn onSignIn={handleSignIn} showToast={showToast} />
+      const authContent =
+        authScreen === 'signup' ? (
+          <SignUp
+            onBack={() => goAuth('signin', 'pop')}
+            onContinue={b => { setBasics(b); goAuth('setup', 'push') }}
+          />
+        ) : authScreen === 'setup' && basics ? (
+          <ProfileSetup basics={basics} onBack={() => goAuth('signup', 'pop')} onComplete={handleAccountCreated} />
+        ) : (
+          <SignIn onSignIn={handleSignIn} onSignUp={() => goAuth('signup', 'push')} showToast={showToast} />
+        )
+      return (
+        <div key={authScreen} className={`h-full ${authDirection === 'pop' ? 'screen-pop' : 'screen-push'}`}>
+          {authContent}
+        </div>
+      )
     }
 
     if (isLoading) return <LoadingScreen />

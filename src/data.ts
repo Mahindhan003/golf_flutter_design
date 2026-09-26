@@ -1,4 +1,4 @@
-import type { Tournament, Course, GolferProfile } from './types'
+import type { Tournament, Course, GolferProfile, NewAccount } from './types'
 
 export const MOCK_PROFILE: GolferProfile = {
   firstName: 'Alexander',
@@ -14,6 +14,45 @@ export const MOCK_PROFILE: GolferProfile = {
   tournamentsPlayed: 23,
   wins: 4,
   avatarInitials: 'AH',
+  emergencyContactName: 'Claire Hartwell',
+  emergencyContactPhone: '+1 (404) 555-0147',
+  handicapBody: 'USGA (GHIN)',
+  handicapNumber: '10483327',
+  homeClub: 'Augusta Pines Golf Club',
+  preferredTee: 'Blue',
+  dietary: ['None'],
+  shirtSize: 'L',
+  membership: 'Member',
+}
+
+/** Replaces the mock profile with a newly created account (prototype only — no backend) */
+export function applyNewAccount(a: NewAccount) {
+  const [firstName, ...rest] = a.fullName.trim().split(/\s+/)
+  const lastName = rest.join(' ')
+  Object.assign(MOCK_PROFILE, {
+    firstName,
+    lastName,
+    email: a.email.trim(),
+    phone: a.phone.trim(),
+    dob: a.dob,
+    gender: a.gender,
+    country: '',
+    city: '',
+    handicapIndex: parseFloat(a.handicapIndex) || 0,
+    memberSince: new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
+    tournamentsPlayed: 0,
+    wins: 0,
+    avatarInitials: ((firstName?.[0] ?? '') + (lastName?.[0] ?? '')).toUpperCase() || '?',
+    emergencyContactName: a.emergencyContactName.trim(),
+    emergencyContactPhone: a.emergencyContactPhone.trim(),
+    handicapBody: a.handicapBody,
+    handicapNumber: a.handicapNumber.trim(),
+    homeClub: a.homeClub.trim(),
+    preferredTee: a.preferredTee,
+    dietary: a.dietary,
+    shirtSize: a.shirtSize,
+    membership: a.membership,
+  } satisfies Partial<GolferProfile>)
 }
 
 export const MOCK_COURSES: Course[] = [

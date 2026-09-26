@@ -4,12 +4,13 @@ import { Button, Input, IconEye, fieldClass } from '../components'
 
 interface SignInProps {
   onSignIn: () => void
+  onSignUp: () => void
   showToast: (message: string, type?: ToastData['type']) => void
 }
 
 type SignInState = 'idle' | 'loading' | 'error' | 'server-error'
 
-export default function SignIn({ onSignIn, showToast }: SignInProps) {
+export default function SignIn({ onSignIn, onSignUp, showToast }: SignInProps) {
   const [email, setEmail]           = useState('')
   const [password, setPassword]     = useState('')
   const [showPw, setShowPw]         = useState(false)
@@ -183,6 +184,17 @@ export default function SignIn({ onSignIn, showToast }: SignInProps) {
             {state === 'loading' ? 'Signing in…' : 'Sign In'}
           </Button>
         </form>
+
+        <p className="text-center text-sm text-gray-500 mt-6">
+          Don't have an account?{' '}
+          <button
+            type="button"
+            onClick={onSignUp}
+            className="text-ink font-semibold font-display underline underline-offset-4 decoration-lime-500 decoration-2 active:opacity-60"
+          >
+            Sign up
+          </button>
+        </p>
       </div>
 
       {/* Footer */}

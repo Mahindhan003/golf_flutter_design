@@ -124,7 +124,10 @@ export default function Profile({ push, showToast, onSignOut }: ProfileProps) {
           </div>
 
           <h1 className="relative font-display font-extrabold text-white text-[24px] tracking-tight mt-4">{fullName}</h1>
-          <p className="relative text-white/55 text-sm">Member for {memberYears} years · {profile.city}</p>
+          <p className="relative text-white/55 text-sm">
+            {memberYears > 0 ? `Member for ${memberYears} year${memberYears > 1 ? 's' : ''}` : 'New member'}
+            {profile.city ? ` · ${profile.city}` : profile.homeClub ? ` · ${profile.homeClub}` : ''}
+          </p>
 
           {/* Stats */}
           <div className="relative grid grid-cols-3 gap-2 mt-5">
@@ -150,17 +153,36 @@ export default function Profile({ push, showToast, onSignOut }: ProfileProps) {
             <InfoItem label="Phone" value={profile.phone} />
             <InfoItem label="Date of birth" value={formattedDob} />
             <InfoItem label="Gender" value={profile.gender} />
-            <InfoItem label="Country" value={profile.country} />
-            <InfoItem label="City" value={profile.city} />
+            {profile.country && <InfoItem label="Country" value={profile.country} />}
+            {profile.city && <InfoItem label="City" value={profile.city} />}
           </div>
         </Group>
 
         <Group title="Golfer information">
           <div className="px-4 divide-y divide-black/[0.05]">
             <InfoItem label="Handicap index" value={`${profile.handicapIndex.toFixed(1)} (WHS)`} />
+            <InfoItem label="Issuing body" value={profile.handicapBody} />
+            {profile.handicapNumber && <InfoItem label="Member number" value={profile.handicapNumber} />}
+            {profile.homeClub && <InfoItem label="Home club" value={profile.homeClub} />}
+            <InfoItem label="Preferred tee" value={profile.preferredTee} />
+            <InfoItem label="Status" value={profile.membership} />
             <InfoItem label="Member since" value={profile.memberSince} />
             <InfoItem label="Tournaments played" value={profile.tournamentsPlayed.toString()} />
             <InfoItem label="Tournament wins" value={profile.wins.toString()} />
+          </div>
+        </Group>
+
+        <Group title="Event preferences">
+          <div className="px-4 divide-y divide-black/[0.05]">
+            <InfoItem label="Dietary" value={profile.dietary.join(', ')} />
+            <InfoItem label="Shirt size" value={profile.shirtSize} />
+          </div>
+        </Group>
+
+        <Group title="Emergency contact">
+          <div className="px-4 divide-y divide-black/[0.05]">
+            <InfoItem label="Name" value={profile.emergencyContactName} />
+            <InfoItem label="Phone" value={profile.emergencyContactPhone} />
           </div>
         </Group>
 

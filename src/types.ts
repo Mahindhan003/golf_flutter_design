@@ -106,6 +106,34 @@ export interface GolferProfile {
   tournamentsPlayed: number
   wins: number
   avatarInitials: string
+  emergencyContactName: string
+  emergencyContactPhone: string
+  handicapBody: string
+  handicapNumber: string
+  homeClub: string
+  preferredTee: string
+  dietary: string[]
+  shirtSize: string
+  membership: 'Member' | 'Guest'
+}
+
+/** What the sign-up + profile-setup flow collects before the account is created */
+export interface NewAccount {
+  fullName: string
+  email: string
+  phone: string
+  dob: string
+  gender: string
+  emergencyContactName: string
+  emergencyContactPhone: string
+  handicapIndex: string
+  handicapBody: string
+  handicapNumber: string
+  homeClub: string
+  preferredTee: string
+  dietary: string[]
+  shirtSize: string
+  membership: 'Member' | 'Guest'
 }
 
 export interface SharedNavProps {

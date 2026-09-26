@@ -1,4 +1,4 @@
-import type { ReactNode, InputHTMLAttributes } from 'react'
+import { useState, type ReactNode, type InputHTMLAttributes } from 'react'
 import type { TournamentStatus, RegistrationStatus, Tournament } from './types'
 
 /* ─────────────────────────── Icons ─────────────────────────── */
@@ -348,6 +348,142 @@ export function Input({ label, error, hint, leadingIcon, trailingIcon, onCanvas,
       {hint && !error && (
         <p className="text-xs text-gray-400">{hint}</p>
       )}
+    </div>
+  )
+}
+
+function FieldError({ message }: { message: string }) {
+  return (
+    <p className="flex items-center gap-1.5 text-xs text-red-500 font-medium">
+      <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+        <circle cx="6" cy="6" r="5.5" fill="#dc2626" fillOpacity="0.15"/>
+        <path d="M6 4v2.5M6 8v.5" stroke="#dc2626" strokeWidth="1.2" strokeLinecap="round"/>
+      </svg>
+      {message}
+    </p>
+  )
+}
+
+interface PasswordInputProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'size' | 'type'> {
+  label: string
+  error?: string
+  hint?: string
+  onCanvas?: boolean
+}
+
+export function PasswordInput({ label, error, hint, onCanvas, ...props }: PasswordInputProps) {
+  const [show, setShow] = useState(false)
+  return (
+    <div className="flex flex-col gap-1.5">
+      <label className="text-[13px] font-semibold text-gray-600 font-display">{label}</label>
+      <div className="relative">
+        <input {...props} type={show ? 'text' : 'password'} className={`${fieldClass(!!error, onCanvas)} pr-12`} />
+        <button
+          type="button"
+          onClick={() => setShow(v => !v)}
+          aria-label={show ? 'Hide password' : 'Show password'}
+          className="absolute right-4 top-1/2 -translate-y-1/2 p-1 active:opacity-60 transition-opacity"
+          tabIndex={-1}
+        >
+          <IconEye show={show} />
+        </button>
+      </div>
+      {error && <FieldError message={error} />}
+      {hint && !error && <p className="text-xs text-gray-400">{hint}</p>}
+    </div>
+  )
+}
+
+interface SelectFieldProps {
+  label: string
+  value: string
+  onChange: (v: string) => void
+  options: string[]
+  placeholder?: string
+  error?: string
+  onCanvas?: boolean
+}
+
+export function SelectField({ label, value, onChange, options, placeholder, error, onCanvas }: SelectFieldProps) {
+  return (
+    <div className="flex flex-col gap-1.5">
+      <label className="text-[13px] font-semibold text-gray-600 font-display">{label}</label>
+      <select
+        value={value}
+        onChange={e => onChange(e.target.value)}
+        className={`${fieldClass(!!error, onCanvas)} appearance-none ${value ? '' : 'text-gray-400'}`}
+        style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16' fill='none'%3E%3Cpath d='M4 6l4 4 4-4' stroke='%236b7280' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")`,
+          backgroundRepeat: 'no-repeat',
+          backgroundPosition: 'right 16px center',
+          paddingRight: '44px',
+        }}
+      >
+        {placeholder && <option value="" disabled>{placeholder}</option>}
+        {options.map(o => <option key={o} value={o}>{o}</option>)}
+      </select>
+      {error && <FieldError message={error} />}
+    </div>
+  )
+}
+
+interface ChoiceOption {
+  value: string
+  label?: string
+  /** Optional colour swatch, e.g. for tee colours */
+  swatch?: string
+}
+
+interface ChoiceChipsProps {
+  label: string
+  options: (string | ChoiceOption)[]
+  /** Single-select: pass a string. Multi-select: pass an array. */
+  value: string | string[]
+  onChange: (v: string | string[]) => void
+  error?: string
+  hint?: string
+}
+
+/** Pill buttons for short option lists (tee colour, shirt size, dietary needs…) */
+export function ChoiceChips({ label, options, value, onChange, error, hint }: ChoiceChipsProps) {
+  const multi = Array.isArray(value)
+  const isOn = (v: string) => (multi ? value.includes(v) : value === v)
+
+  function toggle(v: string) {
+    if (!multi) return onChange(v)
+    // "None" is exclusive with every other choice
+    if (v === 'None') return onChange(value.includes('None') ? [] : ['None'])
+    const withoutNone = value.filter(x => x !== 'None')
+    onChange(withoutNone.includes(v) ? withoutNone.filter(x => x !== v) : [...withoutNone, v])
+  }
+
+  return (
+    <div className="flex flex-col gap-2">
+      <label className="text-[13px] font-semibold text-gray-600 font-display">{label}</label>
+      <div className="flex flex-wrap gap-2">
+        {options.map(o => {
+          const opt = typeof o === 'string' ? { value: o } : o
+          const on = isOn(opt.value)
+          return (
+            <button
+              key={opt.value}
+              type="button"
+              onClick={() => toggle(opt.value)}
+              aria-pressed={on}
+              className={`h-10 px-4 rounded-full inline-flex items-center gap-2 text-[13px] font-semibold font-display transition-all active:scale-95 ${
+                on ? 'bg-ink text-white' : `bg-canvas text-gray-600 ${error ? 'ring-1 ring-red-300' : ''}`
+              }`}
+            >
+              {opt.swatch && (
+                <span className="w-3.5 h-3.5 rounded-full ring-1 ring-black/15" style={{ background: opt.swatch }} />
+              )}
+              {opt.label ?? opt.value}
+            </button>
+          )
+        })}
+      </div>
+      {error && <FieldError message={error} />}
+      {hint && !error && <p className="text-xs text-gray-400">{hint}</p>}
     </div>
   )
 }
