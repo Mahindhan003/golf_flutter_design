@@ -1,0 +1,10 @@
+{
+  "description": "Connect with fellow golfers through a sleek mobile platform for discovering tournaments, managing profiles, and accessing course details.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}
