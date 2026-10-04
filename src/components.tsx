@@ -238,6 +238,8 @@ interface ButtonProps {
   fullWidth?: boolean
   className?: string
   type?: 'button' | 'submit'
+  /** Submit a form elsewhere on the page by its id */
+  form?: string
 }
 
 export function Button({
@@ -250,6 +252,7 @@ export function Button({
   fullWidth,
   className = '',
   type = 'button',
+  form,
 }: ButtonProps) {
   const base =
     'inline-flex items-center justify-center gap-2 font-display font-semibold rounded-full tracking-tight transition-all duration-150 select-none active:scale-[0.97]'
@@ -274,6 +277,7 @@ export function Button({
   return (
     <button
       type={type}
+      form={form}
       onClick={onClick}
       disabled={disabled || loading}
       className={`${base} ${sizes[size]} ${variants[variant]} ${fullWidth ? 'w-full' : ''} ${className}`}
@@ -398,7 +402,7 @@ interface SelectFieldProps {
   label: string
   value: string
   onChange: (v: string) => void
-  options: string[]
+  options: (string | { value: string; label: string })[]
   placeholder?: string
   error?: string
   onCanvas?: boolean
@@ -420,7 +424,10 @@ export function SelectField({ label, value, onChange, options, placeholder, erro
         }}
       >
         {placeholder && <option value="" disabled>{placeholder}</option>}
-        {options.map(o => <option key={o} value={o}>{o}</option>)}
+        {options.map(o => {
+          const opt = typeof o === 'string' ? { value: o, label: o } : o
+          return <option key={opt.value} value={opt.value}>{opt.label}</option>
+        })}
       </select>
       {error && <FieldError message={error} />}
     </div>
@@ -524,6 +531,7 @@ const STATUS_CONFIG: Record<string, { label: string; bg: string; text: string; d
   'registration-open': { label: 'Registration Open',   bg: 'bg-emerald-50', text: 'text-emerald-700', dot: 'bg-emerald-500' },
   'open':              { label: 'Registration Open',   bg: 'bg-emerald-50', text: 'text-emerald-700', dot: 'bg-emerald-500' },
   'upcoming':          { label: 'Upcoming',             bg: 'bg-sky-50',     text: 'text-sky-700',     dot: 'bg-sky-500'     },
+  'in-progress':       { label: 'Live',                 bg: 'bg-rose-500',   text: 'text-white',       dot: 'bg-white animate-pulse' },
   'coming-soon':       { label: 'Coming Soon',          bg: 'bg-amber-50',   text: 'text-amber-700',   dot: 'bg-amber-500'   },
   'published':         { label: 'Coming Soon',          bg: 'bg-amber-50',   text: 'text-amber-700',   dot: 'bg-amber-500'   },
   'registration-closed': { label: 'Reg. Closed',       bg: 'bg-rose-50',    text: 'text-rose-700',    dot: 'bg-rose-500'    },
@@ -755,7 +763,7 @@ export function TournamentCard({ tournament, onPress, compact }: TournamentCardP
         <img src={tournament.imageUrl} alt={tournament.name} className="w-full h-full object-cover" />
         <div className="absolute inset-0 scrim-top" />
         <div className="absolute top-3 left-3 right-3 flex items-center justify-between gap-2">
-          <StatusBadge status={regStatus === 'registered' ? 'registered' : tournament.status === 'registration-open' ? 'open' : tournament.status} onImage />
+          <StatusBadge status={tournament.status === 'in-progress' ? 'in-progress' : regStatus === 'registered' ? 'registered' : tournament.status === 'registration-open' ? 'open' : tournament.status} onImage />
           <GlassChip>{tournament.format}</GlassChip>
         </div>
       </div>
@@ -784,7 +792,7 @@ export function TournamentCard({ tournament, onPress, compact }: TournamentCardP
         {regStatus === 'registered' && (
           <div className="mt-3.5 flex items-center gap-2 bg-lime-300/40 rounded-2xl px-3 py-2.5">
             <IconCheckCircle />
-            <span className="text-xs font-bold font-display text-pine-800">You're registered</span>
+            <span className="text-xs font-bold font-display text-pine-800">{tournament.status === 'in-progress' ? "You're playing — scoring is open" : "You're registered"}</span>
           </div>
         )}
       </div>

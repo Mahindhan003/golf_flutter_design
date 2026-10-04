@@ -9,6 +9,8 @@ import Home from './screens/Home'
 import TournamentList from './screens/TournamentList'
 import TournamentDetails from './screens/TournamentDetails'
 import CourseDetails from './screens/CourseDetails'
+import Leaderboard from './screens/Leaderboard'
+import LivePlay from './screens/LivePlay'
 import Profile from './screens/Profile'
 import EditProfile from './screens/EditProfile'
 
@@ -417,7 +419,7 @@ export default function App() {
   useEffect(() => {
     const s = currentRoute.screen
     if (s === 'home') setActiveTab(0)
-    else if (s === 'tournaments' || s === 'tournament-details' || s === 'course-details') setActiveTab(1)
+    else if (s === 'tournaments' || s === 'tournament-details' || s === 'course-details' || s === 'leaderboard' || s === 'live-play') setActiveTab(1)
     else if (s === 'profile' || s === 'edit-profile') setActiveTab(2)
   }, [currentRoute.screen])
 
@@ -455,6 +457,10 @@ export default function App() {
           return <TournamentDetails {...sharedProps} tournamentId={currentRoute.params?.id ?? 't1'} />
         case 'course-details':
           return <CourseDetails {...sharedProps} courseId={currentRoute.params?.id ?? 'c1'} />
+        case 'leaderboard':
+          return <Leaderboard {...sharedProps} tournamentId={currentRoute.params?.id ?? 't8'} />
+        case 'live-play':
+          return <LivePlay {...sharedProps} tournamentId={currentRoute.params?.id ?? 't8'} />
         case 'profile':
           return <Profile {...sharedProps} onSignOut={handleSignOut} />
         case 'edit-profile':
@@ -471,7 +477,8 @@ export default function App() {
     )
   }
 
-  const showBottomNav = isAuthenticated && !isLoading
+  // Live scoring is a focused, full-screen mode on the course
+  const showBottomNav = isAuthenticated && !isLoading && currentRoute.screen !== 'live-play'
   const isPhone       = useIsPhoneViewport()
 
   return (

@@ -1,10 +1,74 @@
 import { useState, useEffect } from 'react'
-import type { SharedNavProps } from '../types'
+import type { Course, SharedNavProps } from '../types'
 import {
   Button, InfoRow, SkeletonRow, ErrorState, RoundButton,
   IconBack, IconPin, TournamentCard, SectionHeader,
 } from '../components'
 import { getCourse, getTournamentsByCourse } from '../data'
+import { dist, generateHoleMap, teeSwatch, teeTotal } from '../golf'
+import { HoleMapView } from '../hole-map'
+
+function TeesList({ course }: { course: Course }) {
+  const tees = course.teeSets ?? []
+  if (!tees.length) return null
+  const rating = (r?: number, s?: number) => (r !== undefined ? `${r.toFixed(1)} / ${s}` : '—')
+  return (
+    <div>
+      <h2 className="font-display font-bold text-ink text-[17px] tracking-tight mb-3">Tees</h2>
+      <div className="rounded-2xl bg-canvas p-1">
+        <div className="grid grid-cols-[1fr_64px_72px_72px] gap-1 px-3 py-2 text-[10px] font-bold font-display text-gray-400">
+          <span>Tees</span><span className="text-right">Yards</span><span className="text-right">Men</span><span className="text-right">Women</span>
+        </div>
+        <div className="bg-white rounded-xl divide-y divide-black/[0.04]">
+          {tees.map(t => (
+            <div key={t.id} className="grid grid-cols-[1fr_64px_72px_72px] gap-1 items-center px-3 py-2.5 text-[12px]">
+              <span className="inline-flex items-center gap-2 font-semibold text-ink min-w-0">
+                <span className="w-3 h-3 rounded-full ring-1 ring-black/15 flex-shrink-0" style={{ background: teeSwatch(t.color) }} />
+                <span className="truncate">{t.name}</span>
+              </span>
+              <span className="text-right text-ink">{teeTotal(t).toLocaleString()}</span>
+              <span className="text-right text-gray-500">{rating(t.menRating, t.menSlope)}</span>
+              <span className="text-right text-gray-500">{rating(t.womenRating, t.womenSlope)}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+      <p className="text-[11px] text-gray-400 mt-2 px-1">Rating / slope — used for your playing handicap.</p>
+    </div>
+  )
+}
+
+function HoleGuide({ course }: { course: Course }) {
+  const [index, setIndex] = useState(0)
+  const hole = course.holeData[index]
+  if (!hole) return null
+  const map = hole.map ?? generateHoleMap(hole)
+  return (
+    <div>
+      <h2 className="font-display font-bold text-ink text-[17px] tracking-tight mb-3">Hole guide</h2>
+      <div className="flex gap-1.5 overflow-x-auto no-scrollbar pb-2 -mx-5 px-5">
+        {course.holeData.map((h, i) => (
+          <button key={h.hole} onClick={() => setIndex(i)} aria-pressed={i === index}
+            className={`w-9 h-9 rounded-full text-[13px] font-bold font-display flex-shrink-0 ${i === index ? 'bg-ink text-white' : 'bg-canvas text-gray-600'}`}>{h.hole}</button>
+        ))}
+      </div>
+      <div className="mt-2">
+        <HoleMapView map={map} size="sm" ariaLabel={`Hole ${hole.hole} layout`} />
+      </div>
+      <p className="font-display font-extrabold text-ink text-[19px] tracking-tight mt-3">Hole {hole.hole}{hole.name ? ` · ${hole.name}` : ''}</p>
+      <p className="text-[13px] text-gray-500">Par {hole.par}{hole.parWomen && hole.parWomen !== hole.par ? ` (women ${hole.parWomen})` : ''} · Stroke index {hole.handicap}</p>
+      <div className="flex flex-wrap gap-1.5 mt-3">
+        {(course.teeSets ?? []).map(t => (
+          <span key={t.id} className="h-8 px-3 rounded-full bg-canvas inline-flex items-center gap-1.5 text-[12px] font-semibold text-ink">
+            <span className="w-2.5 h-2.5 rounded-full ring-1 ring-black/15" style={{ background: teeSwatch(t.color) }} />{t.yards[index]} yds
+          </span>
+        ))}
+      </div>
+      <p className="text-[12px] text-gray-500 mt-3">Green depth {dist(map.greenFront, map.greenBack)} yds · {map.hazards.filter(h => h.type === 'bunker').length} bunkers{map.hazards.some(h => h.type === 'water') ? ' · water in play' : ''}</p>
+      {hole.notes && <p className="text-[13px] text-gray-600 mt-2 leading-relaxed">{hole.notes}</p>}
+    </div>
+  )
+}
 
 interface CourseDetailsProps extends SharedNavProps {
   courseId: string
@@ -102,6 +166,13 @@ export default function CourseDetails({ courseId, push, pop, showToast }: Course
             ))}
           </div>
 
+          {course.status && course.status !== 'open' && (
+            <div className={`rounded-2xl px-4 py-3 ${course.status === 'closed' ? 'bg-rose-50 text-rose-700' : 'bg-amber-50 text-amber-800'}`}>
+              <p className="text-[13px] font-bold font-display">{course.status === 'closed' ? 'Course closed' : 'Partly open / maintenance'}</p>
+              {course.statusNote && <p className="text-[12px] opacity-80 mt-0.5">{course.statusNote}</p>}
+            </div>
+          )}
+
           {/* Info */}
           <div className="space-y-4">
             <InfoRow
@@ -118,7 +189,26 @@ export default function CourseDetails({ courseId, push, pop, showToast }: Course
               label="Designer"
               value={course.designer}
             />
+            {course.dressCode && <InfoRow icon={<span className="text-[13px]">👕</span>} label="Dress code" value={course.dressCode} />}
           </div>
+
+          {/* Get in touch / get there */}
+          {(course.geo || course.phone || course.website) && (
+            <div className="grid grid-cols-3 gap-2">
+              {course.geo && (
+                <a href={`https://www.google.com/maps/dir/?api=1&destination=${course.geo.lat},${course.geo.lng}`} target="_blank" rel="noreferrer"
+                  className="h-12 rounded-2xl bg-ink text-white text-[13px] font-bold font-display flex items-center justify-center active:scale-[0.97]">Directions</a>
+              )}
+              {course.phone && (
+                <a href={`tel:${course.phone.replace(/[^+\d]/g, '')}`}
+                  className="h-12 rounded-2xl bg-canvas text-ink text-[13px] font-bold font-display flex items-center justify-center active:scale-[0.97]">Call</a>
+              )}
+              {course.website && (
+                <a href={course.website.startsWith('http') ? course.website : `https://${course.website}`} target="_blank" rel="noreferrer"
+                  className="h-12 rounded-2xl bg-canvas text-ink text-[13px] font-bold font-display flex items-center justify-center active:scale-[0.97]">Website</a>
+              )}
+            </div>
+          )}
 
           {/* Description */}
           <div>
@@ -180,6 +270,21 @@ export default function CourseDetails({ courseId, push, pop, showToast }: Course
               </div>
             </div>
           </div>
+
+          <TeesList course={course} />
+
+          <HoleGuide course={course} />
+
+          {!!course.facilities?.length && (
+            <div>
+              <h2 className="font-display font-bold text-ink text-[17px] tracking-tight mb-3">Facilities</h2>
+              <div className="flex flex-wrap gap-1.5">
+                {course.facilities.map(f => (
+                  <span key={f} className="h-8 px-3 rounded-full bg-canvas text-[12px] font-semibold text-gray-600 inline-flex items-center">{f}</span>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Related tournaments */}
           {tournaments.length > 0 && (

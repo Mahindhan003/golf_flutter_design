@@ -5,8 +5,9 @@ import {
   Avatar, StatusBadge, GlassChip, IconArrowRight,
 } from '../components'
 import { MOCK_PROFILE, MOCK_TOURNAMENTS } from '../data'
+import { leaderboard, myEntry, useLiveVersion } from '../live'
+import { toPar } from '../golf'
 
-const REGISTERED = MOCK_TOURNAMENTS.find(t => t.registrationStatus === 'registered')!
 const DISCOVER   = MOCK_TOURNAMENTS.filter(t => t.registrationStatus === 'open').slice(0, 2)
 
 function daysUntil(date: string) {
@@ -15,8 +16,17 @@ function daysUntil(date: string) {
 }
 
 export default function Home({ push, showToast }: SharedNavProps) {
+  useLiveVersion()
   const [loading, setLoading] = useState(true)
   const profile = MOCK_PROFILE
+
+  // Tournaments the golfer is in, from the live store (registering/withdrawing updates these)
+  const mine = MOCK_TOURNAMENTS.filter(t => myEntry(t.id)?.status === 'registered')
+  const playing = mine.find(t => t.status === 'in-progress')
+  const REGISTERED = mine
+    .filter(t => t.status !== 'in-progress' && t.status !== 'completed' && t.status !== 'cancelled')
+    .sort((a, b) => a.startDate.localeCompare(b.startDate))[0]
+  const myRow = playing ? leaderboard(playing).find(r => r.entry.isMe) : undefined
 
   useEffect(() => {
     const id = setTimeout(() => setLoading(false), 900)
@@ -99,6 +109,41 @@ export default function Home({ push, showToast }: SharedNavProps) {
             </div>
           </div>
         </div>
+
+        {/* Playing now — straight into scoring on tournament day */}
+        {playing && (
+          <div>
+            <SectionHeader
+              title="Playing now"
+              action={{ label: 'Leaderboard', onClick: () => push('leaderboard', { id: playing.id }) }}
+            />
+            <div className="bg-ink rounded-[28px] p-5 shadow-float">
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-lime-400 animate-pulse" />
+                <p className="text-lime-400 text-[12px] font-bold font-display">Live · {playing.venue}</p>
+              </div>
+              <h3 className="font-display font-extrabold text-white text-[20px] leading-tight tracking-tight mt-1.5">{playing.name}</h3>
+              <div className="flex gap-5 mt-4">
+                {[
+                  [myRow?.position || '–', 'Position'],
+                  [myRow?.thru ? toPar(myRow.grossToPar) : '–', 'To par'],
+                  [myRow ? (myRow.thru === myRow.holes ? 'F' : String(myRow.thru)) : '–', 'Thru'],
+                ].map(([value, label]) => (
+                  <div key={label}>
+                    <p className="font-display font-bold text-white text-[20px] leading-none">{value}</p>
+                    <p className="text-white/55 text-[11px] mt-1">{label}</p>
+                  </div>
+                ))}
+              </div>
+              <button
+                onClick={() => push('live-play', { id: playing.id })}
+                className="mt-5 w-full h-12 rounded-full bg-lime-400 text-ink font-display font-bold text-[15px] active:scale-[0.98] transition-all"
+              >
+                {myRow && myRow.thru === myRow.holes ? 'View my card' : myRow?.thru ? `Continue · hole ${myRow.thru + 1}` : 'Start my round'}
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Your next tournament */}
         {REGISTERED && (
