@@ -1,3 +1,4 @@
+import { handicapText, headlineStat } from '../account-rules'
 import { useState, useEffect } from 'react'
 import type { SharedNavProps } from '../types'
 import {
@@ -94,7 +95,7 @@ export default function Home({ push, showToast }: SharedNavProps) {
           <p className="relative text-white/55 text-[12px] font-semibold font-display">Handicap Index</p>
           <div className="relative flex items-end justify-between mt-1">
             <p className="font-display font-extrabold text-lime-400 text-[44px] leading-none tracking-tight">
-              {profile.handicapIndex.toFixed(1)}
+              {handicapText(profile)}
             </p>
             <div className="flex gap-5 pb-1">
               <div className="text-right">
@@ -103,8 +104,8 @@ export default function Home({ push, showToast }: SharedNavProps) {
               </div>
               <div className="w-px bg-white/15" />
               <div className="text-right">
-                <p className="font-display font-bold text-white text-[20px] leading-none">{profile.wins}</p>
-                <p className="text-white/55 text-[11px] mt-1">Wins</p>
+                <p className="font-display font-bold text-white text-[20px] leading-none">{headlineStat(profile).value}</p>
+                <p className="text-white/55 text-[11px] mt-1">{headlineStat(profile).label}</p>
               </div>
             </div>
           </div>

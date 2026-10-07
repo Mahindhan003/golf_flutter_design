@@ -280,25 +280,55 @@ export interface GolferProfile {
   dietary: string[]
   shirtSize: string
   membership: 'Member' | 'Guest'
+  /* ── Registration (Docs/REGISTER GOLFER.txt) ── */
+  /** Non-binary / prefer not to say: which tee ratings to use for course handicap */
+  ratingsGender?: 'men' | 'women'
+  street?: string
+  region?: string
+  postalCode?: string
+  emergencyContactRelationship?: string
+  /** false = "Not yet" (no Handicap Index) */
+  hasHandicap?: boolean
+  /** When the golfer last changed their Handicap Index */
+  handicapUpdated?: string
+  preferredContact?: string
+  dietaryNote?: string
+  marketingOptIn?: boolean
+  /** Must be true before registering for tournaments */
+  emailVerified?: boolean
 }
 
 /** What the sign-up + profile-setup flow collects before the account is created */
 export interface NewAccount {
   fullName: string
+  firstName?: string
+  lastName?: string
   email: string
   phone: string
   dob: string
   gender: string
+  ratingsGender?: 'men' | 'women'
+  street?: string
+  city?: string
+  region?: string
+  postalCode?: string
+  country: string
   emergencyContactName: string
   emergencyContactPhone: string
+  emergencyContactRelationship?: string
+  hasHandicap: boolean
+  /** Parsed Handicap Index as text ('' when "not yet"); plus handicaps are negative */
   handicapIndex: string
   handicapBody: string
   handicapNumber: string
   homeClub: string
   preferredTee: string
-  dietary: string[]
-  shirtSize: string
   membership: 'Member' | 'Guest'
+  preferredContact: string
+  dietary: string[]
+  dietaryNote?: string
+  marketingOptIn?: boolean
+  emailVerified: boolean
 }
 
 export interface SharedNavProps {

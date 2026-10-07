@@ -1,3 +1,4 @@
+import { handicapText, headlineStat } from '../account-rules'
 import { useState, useEffect } from 'react'
 import type { SharedNavProps } from '../types'
 import {
@@ -132,7 +133,7 @@ export default function Profile({ push, showToast, onSignOut }: ProfileProps) {
           {/* Stats */}
           <div className="relative grid grid-cols-3 gap-2 mt-5">
             <div className="bg-lime-400 rounded-2xl p-3">
-              <p className="font-display font-extrabold text-ink text-[20px] leading-none tracking-tight">{profile.handicapIndex.toFixed(1)}</p>
+              <p className="font-display font-extrabold text-ink text-[20px] leading-none tracking-tight">{handicapText(profile)}</p>
               <p className="text-pine-800 text-[11px] font-semibold mt-1.5">Handicap</p>
             </div>
             <div className="bg-white/[0.08] rounded-2xl p-3">
@@ -140,8 +141,8 @@ export default function Profile({ push, showToast, onSignOut }: ProfileProps) {
               <p className="text-white/55 text-[11px] font-semibold mt-1.5">Played</p>
             </div>
             <div className="bg-white/[0.08] rounded-2xl p-3">
-              <p className="font-display font-extrabold text-white text-[20px] leading-none tracking-tight">{profile.wins}</p>
-              <p className="text-white/55 text-[11px] font-semibold mt-1.5">Wins</p>
+              <p className="font-display font-extrabold text-white text-[20px] leading-none tracking-tight">{headlineStat(profile).value}</p>
+              <p className="text-white/55 text-[11px] font-semibold mt-1.5">{headlineStat(profile).label}</p>
             </div>
           </div>
         </div>
@@ -153,29 +154,31 @@ export default function Profile({ push, showToast, onSignOut }: ProfileProps) {
             <InfoItem label="Phone" value={profile.phone} />
             <InfoItem label="Date of birth" value={formattedDob} />
             <InfoItem label="Gender" value={profile.gender} />
+            {(profile.street || profile.city || profile.postalCode) && <InfoItem label="Address" value={[profile.street, profile.city, profile.region, profile.postalCode].filter(Boolean).join(', ')} />}
             {profile.country && <InfoItem label="Country" value={profile.country} />}
-            {profile.city && <InfoItem label="City" value={profile.city} />}
+            <InfoItem label="Email verified" value={profile.emailVerified === false ? 'Not yet' : 'Yes'} />
           </div>
         </Group>
 
         <Group title="Golfer information">
           <div className="px-4 divide-y divide-black/[0.05]">
-            <InfoItem label="Handicap index" value={`${profile.handicapIndex.toFixed(1)} (WHS)`} />
-            <InfoItem label="Issuing body" value={profile.handicapBody} />
+            <InfoItem label="Handicap index" value={profile.hasHandicap === false ? 'Not yet' : `${handicapText(profile)} (WHS)`} />
+            {profile.handicapBody && <InfoItem label="Issuing body" value={profile.handicapBody} />}
             {profile.handicapNumber && <InfoItem label="Member number" value={profile.handicapNumber} />}
             {profile.homeClub && <InfoItem label="Home club" value={profile.homeClub} />}
-            <InfoItem label="Preferred tee" value={profile.preferredTee} />
+            {profile.preferredTee && <InfoItem label="Preferred tee" value={profile.preferredTee} />}
             <InfoItem label="Status" value={profile.membership} />
             <InfoItem label="Member since" value={profile.memberSince} />
             <InfoItem label="Tournaments played" value={profile.tournamentsPlayed.toString()} />
-            <InfoItem label="Tournament wins" value={profile.wins.toString()} />
+            <InfoItem label={headlineStat(profile).label} value={headlineStat(profile).value} />
           </div>
         </Group>
 
         <Group title="Event preferences">
           <div className="px-4 divide-y divide-black/[0.05]">
-            <InfoItem label="Dietary" value={profile.dietary.join(', ')} />
-            <InfoItem label="Shirt size" value={profile.shirtSize} />
+            <InfoItem label="Preferred contact" value={profile.preferredContact ?? 'Email'} />
+            <InfoItem label="Dietary" value={[...profile.dietary, profile.dietaryNote].filter(Boolean).join(', ') || 'None'} />
+            {profile.shirtSize && <InfoItem label="Shirt size" value={profile.shirtSize} />}
           </div>
         </Group>
 
@@ -183,6 +186,7 @@ export default function Profile({ push, showToast, onSignOut }: ProfileProps) {
           <div className="px-4 divide-y divide-black/[0.05]">
             <InfoItem label="Name" value={profile.emergencyContactName} />
             <InfoItem label="Phone" value={profile.emergencyContactPhone} />
+            {profile.emergencyContactRelationship && <InfoItem label="Relationship" value={profile.emergencyContactRelationship} />}
           </div>
         </Group>
 

@@ -4,6 +4,7 @@ import { IconHome, IconTournament, IconProfile, IconSpinner } from './components
 import SignIn from './screens/SignIn'
 import SignUp, { type AccountBasics } from './screens/SignUp'
 import ProfileSetup from './screens/ProfileSetup'
+import VerifyEmail from './screens/VerifyEmail'
 import { MOCK_PROFILE, applyNewAccount } from './data'
 import Home from './screens/Home'
 import TournamentList from './screens/TournamentList'
@@ -371,12 +372,13 @@ export default function App() {
     showToast(`Welcome back, ${MOCK_PROFILE.firstName}`, 'success')
   }, [showToast])
 
-  /* Sign-up flow: sign in → sign up → golfer profile setup → home */
-  const [authScreen, setAuthScreen]       = useState<'signin' | 'signup' | 'setup'>('signin')
+  /* Sign-up flow: sign in → sign up → verify email → golfer profile setup → home */
+  const [authScreen, setAuthScreen]       = useState<'signin' | 'signup' | 'verify' | 'setup'>('signin')
+  const [emailVerified, setEmailVerified] = useState(false)
   const [authDirection, setAuthDirection] = useState<'push' | 'pop'>('push')
   const [basics, setBasics]               = useState<AccountBasics | null>(null)
 
-  const goAuth = useCallback((screen: 'signin' | 'signup' | 'setup', direction: 'push' | 'pop') => {
+  const goAuth = useCallback((screen: 'signin' | 'signup' | 'verify' | 'setup', direction: 'push' | 'pop') => {
     setAuthDirection(direction)
     setAuthScreen(screen)
   }, [])
@@ -388,7 +390,7 @@ export default function App() {
     setIsAuthenticated(true)
     setNavStack([{ screen: 'home', direction: 'push' }])
     setActiveTab(0)
-    showToast(`Welcome to the clubhouse, ${MOCK_PROFILE.firstName}!`, 'success')
+    showToast(`Welcome, ${MOCK_PROFILE.firstName}! We've emailed a confirmation to ${MOCK_PROFILE.email}`, 'success')
   }, [showToast])
 
   const handleSignOut = useCallback(() => {
@@ -429,10 +431,13 @@ export default function App() {
         authScreen === 'signup' ? (
           <SignUp
             onBack={() => goAuth('signin', 'pop')}
-            onContinue={b => { setBasics(b); goAuth('setup', 'push') }}
+            onContinue={b => { setBasics(b); setEmailVerified(false); goAuth('verify', 'push') }}
           />
+        ) : authScreen === 'verify' && basics ? (
+          <VerifyEmail email={basics.email} onBack={() => goAuth('signup', 'pop')} showToast={showToast}
+            onDone={v => { setEmailVerified(v); goAuth('setup', 'push') }} />
         ) : authScreen === 'setup' && basics ? (
-          <ProfileSetup basics={basics} onBack={() => goAuth('signup', 'pop')} onComplete={handleAccountCreated} />
+          <ProfileSetup basics={basics} emailVerified={emailVerified} onBack={() => goAuth('verify', 'pop')} onComplete={handleAccountCreated} />
         ) : (
           <SignIn onSignIn={handleSignIn} onSignUp={() => goAuth('signup', 'push')} showToast={showToast} />
         )

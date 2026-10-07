@@ -8,7 +8,7 @@ npm install
 npx vite
 ```
 
-Sign in with any email and a password of 4+ characters. Use `wrongpass` to see the wrong-password error and `serverdown` to see the server error.
+Sign in with any email and a password of 4+ characters. **Sign up** creates a golfer account: login details → verify email with a 6-digit code (the prototype shows the code, `246810`) or verify later → about you → your game → preferences. Rules are shared with the web prototype in `src/account-rules.ts`. Use `wrongpass` to see the wrong-password error and `serverdown` to see the server error.
 
 ## Screens
 

@@ -1,10 +1,14 @@
 import { useState, type FormEvent } from 'react'
 import { Button, Input, PasswordInput, RoundButton, IconBack } from '../components'
+import { isBlockedPassword, nameError, phoneError, EMAIL_RE } from '../account-rules'
 
 export interface AccountBasics {
   fullName: string
+  firstName?: string
+  lastName?: string
   email: string
   phone: string
+  marketingOptIn?: boolean
 }
 
 interface SignUpProps {
@@ -12,9 +16,7 @@ interface SignUpProps {
   onContinue: (basics: AccountBasics) => void
 }
 
-type Errors = Partial<Record<'fullName' | 'email' | 'phone' | 'password' | 'confirm', string>>
-
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+type Errors = Partial<Record<'firstName' | 'lastName' | 'email' | 'phone' | 'password' | 'confirm' | 'terms', string>>
 
 function passwordStrength(pw: string) {
   let score = 0
@@ -29,7 +31,10 @@ const STRENGTH_LABEL = ['Too weak', 'Weak', 'Fair', 'Good', 'Strong']
 const STRENGTH_BAR   = ['bg-rose-400', 'bg-rose-400', 'bg-amber-400', 'bg-lime-500', 'bg-lime-500']
 
 export default function SignUp({ onBack, onContinue }: SignUpProps) {
-  const [fullName, setFullName] = useState('')
+  const [firstName, setFirstName] = useState('')
+  const [lastName, setLastName]   = useState('')
+  const [terms, setTerms]         = useState(false)
+  const [marketing, setMarketing] = useState(false)
   const [email, setEmail]       = useState('')
   const [phone, setPhone]       = useState('')
   const [password, setPassword] = useState('')
@@ -39,11 +44,14 @@ export default function SignUp({ onBack, onContinue }: SignUpProps) {
 
   function validate(): Errors {
     const e: Errors = {}
-    if (fullName.trim().split(/\s+/).filter(Boolean).length < 2) e.fullName = 'Enter your first and last name'
+    const fe = nameError(firstName, 'first'); if (fe) e.firstName = fe
+    const le = nameError(lastName, 'last'); if (le) e.lastName = le
     if (!email.trim()) e.email = 'Email is required'
     else if (!EMAIL_RE.test(email.trim())) e.email = 'Enter a valid email address'
-    if (phone.replace(/\D/g, '').length < 7) e.phone = 'Enter a valid phone number'
+    const pe = phoneError(phone); if (pe) e.phone = pe
     if (password.length < 8) e.password = 'Use at least 8 characters'
+    else if (isBlockedPassword(password)) e.password = 'This password is too common — choose another'
+    if (!terms) e.terms = 'Please agree to the Terms of Service and Privacy Policy'
     if (!confirm) e.confirm = 'Please confirm your password'
     else if (confirm !== password) e.confirm = "Passwords don't match"
     return e
@@ -62,7 +70,10 @@ export default function SignUp({ onBack, onContinue }: SignUpProps) {
     setLoading(true)
     setTimeout(() => {
       setLoading(false)
-      onContinue({ fullName: fullName.trim(), email: email.trim(), phone: phone.trim() })
+      onContinue({
+        fullName: `${firstName.trim()} ${lastName.trim()}`, firstName: firstName.trim(), lastName: lastName.trim(),
+        email: email.trim(), phone: phone.trim(), marketingOptIn: marketing,
+      })
     }, 1200)
   }
 
@@ -94,19 +105,16 @@ export default function SignUp({ onBack, onContinue }: SignUpProps) {
       <div className="flex-1 px-6 pt-7 pb-6">
         <div className="mb-6">
           <h2 className="font-display font-extrabold text-ink text-[24px] tracking-tight">Create account</h2>
-          <p className="text-gray-500 text-sm mt-1">Step 1 of 2 · Your login details</p>
+          <p className="text-gray-500 text-sm mt-1">Step 1 of 3 · Your login details</p>
         </div>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4" noValidate>
-          <Input
-            label="Full name"
-            placeholder="Alexander Hartwell"
-            value={fullName}
-            onChange={e => { setFullName(e.target.value); clear('fullName') }}
-            error={errors.fullName}
-            autoComplete="name"
-            onCanvas
-          />
+          <div className="grid grid-cols-2 gap-3">
+            <Input label="First name" placeholder="Alexander" value={firstName} autoComplete="given-name" onCanvas
+              onChange={e => { setFirstName(e.target.value); clear('firstName') }} error={errors.firstName} />
+            <Input label="Last name" placeholder="Hartwell" value={lastName} autoComplete="family-name" onCanvas
+              onChange={e => { setLastName(e.target.value); clear('lastName') }} error={errors.lastName} />
+          </div>
           <Input
             label="Email address"
             type="email"
@@ -119,7 +127,7 @@ export default function SignUp({ onBack, onContinue }: SignUpProps) {
             onCanvas
           />
           <Input
-            label="Phone number"
+            label="Mobile phone"
             type="tel"
             placeholder="+1 (404) 555-0000"
             value={phone}
@@ -162,6 +170,21 @@ export default function SignUp({ onBack, onContinue }: SignUpProps) {
             onCanvas
           />
 
+          <label className={`flex items-start gap-3 rounded-2xl px-4 py-3 ${errors.terms ? 'bg-rose-50 ring-1 ring-rose-200' : 'bg-white shadow-card'}`}>
+            <input type="checkbox" checked={terms} onChange={e => { setTerms(e.target.checked); clear('terms') }} className="mt-0.5 w-5 h-5 accent-[#0c1a12]" />
+            <span className="text-[13px] text-gray-600 leading-relaxed">
+              I agree to the <span className="font-semibold text-ink">Terms of Service</span> and <span className="font-semibold text-ink">Privacy Policy</span>
+              {errors.terms && <span className="block text-rose-600 text-[12px] font-semibold mt-0.5" role="alert">{errors.terms}</span>}
+            </span>
+          </label>
+          <label className="flex items-start gap-3 rounded-2xl px-4 py-3 bg-white shadow-card">
+            <input type="checkbox" checked={marketing} onChange={e => setMarketing(e.target.checked)} className="mt-0.5 w-5 h-5 accent-[#0c1a12]" />
+            <span className="text-[13px] text-gray-600 leading-relaxed">
+              Send me news about tournaments and offers
+              <span className="block text-[11px] text-gray-400">Optional · unsubscribe any time</span>
+            </span>
+          </label>
+
           <Button type="submit" fullWidth size="lg" loading={loading} className="mt-2">
             {loading ? 'Creating account…' : 'Continue'}
           </Button>
@@ -179,15 +202,6 @@ export default function SignUp({ onBack, onContinue }: SignUpProps) {
         </p>
       </div>
 
-      {/* Footer */}
-      <div className="px-6 pb-6 pt-2 flex-shrink-0">
-        <p className="text-center text-[10px] leading-relaxed text-gray-400">
-          By creating an account, you agree to our<br />
-          <span className="text-ink font-semibold">Terms of Service</span>
-          {' '}and{' '}
-          <span className="text-ink font-semibold">Privacy Policy</span>
-        </p>
-      </div>
     </div>
   )
 }

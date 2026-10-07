@@ -5,6 +5,7 @@ import {
   IconBack, IconCalendar, IconPin, IconClock, IconCourse, IconUsers, IconCheckCircle,
 } from '../components'
 import { getTournament, getCourse, MOCK_PROFILE } from '../data'
+import { ratingsGenderOf } from '../account-rules'
 import { entriesFor, groupOf, myEntry, registerMe, useLiveVersion, withdrawMe } from '../live'
 import {
   TIE_BREAK_OPTIONS, formatClock, formatDateTime, formatDay, formatMoney, isoDate, isoLocalDateTime, teeSwatch, teeTotal,
@@ -39,8 +40,8 @@ function eligibilityProblem(t: Tournament): string | null {
   if (!e) return null
   if (e.maxHandicap !== undefined && hcp > e.maxHandicap) return `Handicap index ${e.maxHandicap} or lower is required (yours is ${hcp.toFixed(1)}).`
   if (e.minHandicap !== undefined && hcp < e.minHandicap) return `Handicap index ${e.minHandicap} or higher is required.`
-  if (e.gender === 'men' && MOCK_PROFILE.gender === 'Female') return 'This event is for men.'
-  if (e.gender === 'women' && MOCK_PROFILE.gender !== 'Female') return 'This event is for women.'
+  if (e.gender === 'men' && ratingsGenderOf(MOCK_PROFILE) === 'women') return 'This event is for men.'
+  if (e.gender === 'women' && ratingsGenderOf(MOCK_PROFILE) !== 'women') return 'This event is for women.'
   if (e.officialHandicapRequired && !MOCK_PROFILE.handicapBody) return 'An official handicap is required.'
   if (e.membersOnly && MOCK_PROFILE.membership !== 'Member') return 'This event is for members of the host club.'
   return null
@@ -115,6 +116,16 @@ export default function TournamentDetails({ tournamentId, push, pop, showToast, 
     : isOpen ? 'open' : isComingSoon ? 'coming-soon' : 'closed'
 
   function register() {
+    if (MOCK_PROFILE.emailVerified === false) {
+      showDialog({
+        title: 'Verify your email to register',
+        message: `Enter the code we sent to ${MOCK_PROFILE.email} — then you can register for ${t.name}.`,
+        confirmLabel: 'Verify now (demo)',
+        cancelLabel: 'Later',
+        onConfirm: () => { MOCK_PROFILE.emailVerified = true; showToast('Email verified — you can register now') },
+      })
+      return
+    }
     if (!myDivision) { showToast('No division matches your handicap', 'error'); return }
     const full = spotsLeft <= 0
     showDialog({
